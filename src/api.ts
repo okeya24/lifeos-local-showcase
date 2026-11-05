@@ -24,6 +24,27 @@ export function getModelStatus() {
   return requestJson<ModelStatus>("/api/status");
 }
 
+export function getVoiceStatus() {
+  return requestJson<{ online: boolean; language: string; url: string }>(
+    "/api/voice/status"
+  );
+}
+
+export async function transcribeAudio(blob: Blob) {
+  const response = await fetch("/api/voice/transcribe", {
+    method: "POST",
+    headers: {
+      "Content-Type": blob.type || "application/octet-stream"
+    },
+    body: blob
+  });
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null);
+    throw new Error(detail?.detail || detail?.error || "本地语音识别失败。");
+  }
+  return response.json() as Promise<{ text: string; language: string }>;
+}
+
 export function getNotes(domain?: DomainId) {
   const query = domain ? `?domain=${encodeURIComponent(domain)}` : "";
   return requestJson<NoteSummary[]>(`/api/notes${query}`);

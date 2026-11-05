@@ -4,15 +4,16 @@
 
 **把生活、健康、学习、工作和思考，变成一座可探索的三维个人宇宙。**
 
-本地优先 · Markdown 存储 · 3D 成长地图 · 本地 AI 对话
+本地优先 · Markdown 存储 · 3D 成长地图 · 本地语音与 AI 对话
 
 ![Developer preview](https://img.shields.io/badge/status-developer_preview-ffb454?style=flat-square)
 ![Local first](https://img.shields.io/badge/local--first-yes-56ead5?style=flat-square)
 ![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square)
 ![Three.js](https://img.shields.io/badge/Three.js-WebGL-8b72ff?style=flat-square)
 ![Ollama](https://img.shields.io/badge/AI-Ollama-ffffff?style=flat-square)
+![Voice](https://img.shields.io/badge/voice-local-56ead5?style=flat-square)
 
-[下载 v0.1.0](https://github.com/okeya24/lifeos-local-showcase/releases/tag/v0.1.0) · [产品能力](#-产品能力) · [效果预览](#-效果预览) · [快速启动](#-3-分钟启动) · [路线图](#-路线图) · [隐私边界](#-隐私与数据边界)
+[下载 v0.2.0](https://github.com/okeya24/lifeos-local-showcase/releases/tag/v0.2.0) · [产品能力](#-产品能力) · [效果预览](#-效果预览) · [快速启动](#-3-分钟启动) · [路线图](#-路线图) · [隐私边界](#-隐私与数据边界)
 
 </div>
 
@@ -38,6 +39,7 @@ LifeOS Local 尝试回答另一个问题：
 | **本地 Markdown** | 每条记录都是可读、可迁移、可 Git 备份的普通文件 |
 | **快速记录** | 在应用内直接写入领域、日期和内容，不需要切换编辑器 |
 | **本地 AI 对话** | 使用 Ollama，在本机完成模型推理，不依赖云端 API Key |
+| **连续语音对话** | 自动检测说话与停顿，流式更新字幕；AI 朗读时可以直接插话打断 |
 | **资料来源反馈** | 对话会显示本轮参考的本地笔记标题，减少无依据回答 |
 | **多领域成长视图** | 从一块界面查看今日轨迹、长期指标和最近资料 |
 | **模型适配层** | 当前支持 Ollama，结构上可以继续接入 Dify 或 OpenAI-compatible API |
@@ -48,6 +50,10 @@ LifeOS Local 尝试回答另一个问题：
 ### 三维宇宙与本地 AI 对话
 
 ![LifeOS 对话与三维宇宙](docs/assets/lifeos-ai-chat.png)
+
+### 连续语音对话
+
+![LifeOS 本地语音对话](docs/assets/lifeos-voice-chat.png)
 
 ### 手机布局
 
@@ -115,6 +121,13 @@ git clone https://github.com/okeya24/lifeos-local-showcase.git
 cd lifeos-local-showcase
 pnpm install
 ollama pull qwen2.5:7b
+brew install whisperkit-cli
+pnpm voice
+```
+
+另开一个终端启动界面和对话服务：
+
+```bash
 pnpm dev
 ```
 
@@ -194,6 +207,7 @@ flowchart LR
 - 三维场景加载、旋转、缩放和领域切换
 - Markdown 快速记录与持久化
 - 本地 Ollama 流式对话
+- 连续语音识别、自动断句、分句朗读与插话打断
 - 基于当前问题筛选最近资料
 - 对话来源标题显示
 - 桌面和手机响应式布局
@@ -223,6 +237,7 @@ flowchart LR
 
 - 目前只支持 Markdown，不支持自动导入 PDF、Pages、Word 或图片 OCR。
 - 检索仍是轻量关键词与最近资料组合，不是真正的向量数据库。
+- 语音识别目前针对 Apple Silicon + WhisperKit，其他平台的适配还未完成。
 - 还没有账号、多设备同步和云端模型路由。
 - macOS 用户可以直接运行源码，但还没有正式 DMG 安装包。
 

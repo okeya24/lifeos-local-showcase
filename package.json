@@ -1,18 +1,13 @@
 {
   "name": "lifeos-local",
-  "version": "0.1.0",
-  "description": "Local-first 3D personal growth system with Markdown notes and private AI conversation.",
-  "homepage": "https://github.com/okeya24/lifeos-local-showcase",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/okeya24/lifeos-local-showcase.git"
-  },
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n web,api -c cyan,magenta \"vite --host 127.0.0.1 --port 5173\" \"node --watch server/index.mjs\"",
     "dev:web": "vite --host 127.0.0.1 --port 5173",
     "dev:api": "node --watch server/index.mjs",
+    "voice": "whisperkit-cli serve --model small --language zh --host 127.0.0.1 --port 50060 --without-timestamps",
     "build": "tsc --noEmit && vite build",
     "start": "node server/index.mjs",
     "typecheck": "tsc --noEmit"

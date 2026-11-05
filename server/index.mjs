@@ -1,6 +1,8 @@
 import express from "express";
 import matter from "gray-matter";
 import { promises as fs } from "node:fs";
+import { spawn } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { modelProvider } from "./providers/index.mjs";
@@ -11,6 +13,9 @@ const vaultDir = path.join(projectRoot, "vault");
 const dataFile = path.join(projectRoot, "data", "seed.json");
 const distDir = path.join(projectRoot, "dist");
 const port = Number(process.env.PORT || 8787);
+const whisperUrl = process.env.WHISPER_URL || "http://127.0.0.1:50060";
+const whisperLanguage = process.env.WHISPER_LANGUAGE || "zh";
+const ffmpegPath = process.env.FFMPEG_PATH || "/opt/homebrew/bin/ffmpeg";
 
 const domainFolders = {
   learning: "40 学习",
@@ -208,6 +213,106 @@ app.post("/api/notes", async (request, response, next) => {
 app.get("/api/status", async (_request, response) => {
   response.json(await modelProvider.getStatus());
 });
+
+app.get("/api/voice/status", async (_request, response) => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1500);
+    const whisperResponse = await fetch(`${whisperUrl}/v1/audio/transcriptions`, {
+      method: "GET",
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    response.json({
+      online: whisperResponse.status < 500,
+      language: whisperLanguage,
+      url: whisperUrl
+    });
+  } catch {
+    response.json({ online: false, language: whisperLanguage, url: whisperUrl });
+  }
+});
+
+function runCommand(command, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) resolve(stdout);
+      else reject(new Error(stderr.trim() || `${command} exited with code ${code}`));
+    });
+  });
+}
+
+app.post(
+  "/api/voice/transcribe",
+  express.raw({
+    type: ["audio/*", "application/octet-stream"],
+    limit: "25mb"
+  }),
+  async (request, response) => {
+    if (!Buffer.isBuffer(request.body) || request.body.length === 0) {
+      return response.status(400).json({ error: "没有收到语音数据。" });
+    }
+
+    const temporaryDirectory = await fs.mkdtemp(
+      path.join(os.tmpdir(), "lifeos-voice-")
+    );
+    const inputPath = path.join(temporaryDirectory, "recording.webm");
+    const wavPath = path.join(temporaryDirectory, "recording.wav");
+
+    try {
+      await fs.writeFile(inputPath, request.body);
+      await runCommand(ffmpegPath, [
+        "-y",
+        "-i",
+        inputPath,
+        "-ar",
+        "16000",
+        "-ac",
+        "1",
+        "-c:a",
+        "pcm_s16le",
+        wavPath
+      ]);
+      const wav = await fs.readFile(wavPath);
+      const form = new FormData();
+      form.append("file", new Blob([wav], { type: "audio/wav" }), "recording.wav");
+      form.append("model", "small");
+      form.append("language", whisperLanguage);
+      form.append("response_format", "json");
+
+      const whisperResponse = await fetch(`${whisperUrl}/v1/audio/transcriptions`, {
+        method: "POST",
+        body: form,
+        signal: AbortSignal.timeout(60_000)
+      });
+      if (!whisperResponse.ok) {
+        throw new Error(`WhisperKit ${whisperResponse.status}`);
+      }
+      const result = await whisperResponse.json();
+      response.json({
+        text: String(result.text || "").trim(),
+        language: whisperLanguage
+      });
+    } catch (error) {
+      response.status(503).json({
+        error: "本地语音识别暂不可用。",
+        detail: error instanceof Error ? error.message : String(error)
+      });
+    } finally {
+      await fs.rm(temporaryDirectory, { recursive: true, force: true });
+    }
+  }
+);
 
 app.post("/api/chat", async (request, response) => {
   const { message, history = [], domain = "" } = request.body ?? {};
