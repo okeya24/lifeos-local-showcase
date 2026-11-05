@@ -12,6 +12,8 @@
 ![Three.js](https://img.shields.io/badge/Three.js-WebGL-8b72ff?style=flat-square)
 ![Ollama](https://img.shields.io/badge/AI-Ollama-ffffff?style=flat-square)
 ![Voice](https://img.shields.io/badge/voice-local-56ead5?style=flat-square)
+[![CI](https://github.com/okeya24/lifeos-local-showcase/actions/workflows/ci.yml/badge.svg)](https://github.com/okeya24/lifeos-local-showcase/actions/workflows/ci.yml)
+![License](https://img.shields.io/badge/license-MIT-56ead5?style=flat-square)
 
 [下载 v0.2.0](https://github.com/okeya24/lifeos-local-showcase/releases/tag/v0.2.0) · [产品能力](#-产品能力) · [效果预览](#-效果预览) · [快速启动](#-3-分钟启动) · [路线图](#-路线图) · [隐私边界](#-隐私与数据边界)
 
